@@ -1,0 +1,33 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ default "loki-stack" .Values.grafana.name }}-datasources
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: {{ .Values.grafana.name }}
+    chart: loki-stack-2.9.9
+    release: {{ .Values.grafana.name }}
+    heritage: Helm
+    grafana_datasource: "1"
+data:
+  loki-stack-datasource.yaml: |-
+    apiVersion: 1
+    datasources:
+    - name: Loki
+      type: loki
+      access: proxy
+      url: "http://{{ default "loki-stack" .Values.grafana.datasource.loki.name }}:{{ default "3100" .Values.grafana.datasource.loki.port_number }}"
+      version: 1
+      isDefault: true
+      jsonData:
+        {}
+    - name: Prometheus
+      type: prometheus
+      access: proxy
+      url: "http://{{ default "loki-stack-prometheus-server" .Values.grafana.datasource.prometheus.name }}:{{ default "9090" .Values.grafana.datasource.prometheus.port_number }}"
+      version: 1
+      isDefault: false
+      jsonData:
+        {}
+
+    # Add more source in here...

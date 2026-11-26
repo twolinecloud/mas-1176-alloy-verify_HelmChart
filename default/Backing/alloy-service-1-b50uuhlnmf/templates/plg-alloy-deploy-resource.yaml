@@ -1,0 +1,153 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {{ .Values.alloy.name }}
+  namespace: {{ .Values.namespace }}
+  labels:
+    app.kubernetes.io/name: alloy
+    app.kubernetes.io/instance: {{ .Values.alloy.name }}
+    app: {{ .Values.alloy.name }}
+---
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: {{ .Values.namespace }}-{{ .Values.alloy.name }}
+  labels:
+    app.kubernetes.io/name: alloy
+    app.kubernetes.io/instance: {{ .Values.alloy.name }}
+    app: {{ .Values.alloy.name }}
+rules:
+  - apiGroups:
+      - ""
+    resources:
+      - nodes
+      - services
+      - endpoints
+      - pods
+    verbs:
+      - get
+      - watch
+      - list
+---
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: {{ .Values.namespace }}-{{ .Values.alloy.name }}
+  labels:
+    app.kubernetes.io/name: alloy
+    app.kubernetes.io/instance: {{ .Values.alloy.name }}
+    app: {{ .Values.alloy.name }}
+subjects:
+  - kind: ServiceAccount
+    name: {{ .Values.alloy.name }}
+    namespace: {{ .Values.namespace }}
+roleRef:
+  kind: ClusterRole
+  name: {{ .Values.namespace }}-{{ .Values.alloy.name }}
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: {{ .Values.alloy.name }}
+  namespace: {{ .Values.namespace }}
+  labels:
+    app.kubernetes.io/name: alloy
+    app.kubernetes.io/instance: {{ .Values.alloy.name }}
+    app: {{ .Values.alloy.name }}
+    turaco-app: {{ .Values.alloy.name }}
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: alloy
+      app.kubernetes.io/instance: {{ .Values.alloy.name }}
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: alloy
+        app.kubernetes.io/instance: {{ .Values.alloy.name }}
+        app: {{ .Values.alloy.name }}
+        turaco-app: {{ .Values.alloy.name }}
+    spec:
+      serviceAccountName: {{ .Values.alloy.name }}
+      enableServiceLinks: true
+      securityContext:
+        runAsGroup: 0
+        runAsUser: 0
+      containers:
+        - name: alloy
+          image: {{ .Values.alloy.image.url }}
+          imagePullPolicy: IfNotPresent
+          args:
+            - run
+            - /etc/alloy/config.alloy
+            # 이미지의 /var/lib/alloy 는 alloy(473) 사용자 전용(0770)이라, capability 를 뺀 root 가 들어갈 수 없다.
+            - --storage.path=/alloy/data
+            - --server.http.listen-addr=0.0.0.0:{{ .Values.alloy.http_listen_port }}
+            - --disable-reporting
+          volumeMounts:
+            - name: config
+              mountPath: /etc/alloy
+            - name: data
+              mountPath: /alloy/data
+            - name: containers
+              mountPath: /var/lib/docker/containers
+              readOnly: true
+            - name: pods
+              mountPath: /var/log/pods
+              readOnly: true
+          env:
+            - name: HOSTNAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+          ports:
+            - name: http-metrics
+              containerPort: {{ .Values.alloy.http_listen_port }}
+              protocol: TCP
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+              - ALL
+            readOnlyRootFilesystem: true
+          readinessProbe:
+            failureThreshold: 5
+            httpGet:
+              path: '/-/ready'
+              port: http-metrics
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 1
+          resources:
+            requests:
+              cpu: {{ .Values.alloy.resources.requests.cpu }}
+              memory: {{ .Values.alloy.resources.requests.memory }}
+            {{- if and (ne .Values.alloy.resources.limits.memory "0Mi") (ne .Values.alloy.resources.limits.memory "0Gi") }}
+            limits:
+              memory: {{ .Values.alloy.resources.limits.memory }}
+              cpu: {{ .Values.alloy.resources.limits.cpu }}
+            {{- end }}
+      tolerations:
+        - effect: NoSchedule
+          key: node-role.kubernetes.io/master
+          operator: Exists
+        - effect: NoSchedule
+          key: node-role.kubernetes.io/control-plane
+          operator: Exists
+      volumes:
+        - name: config
+          secret:
+            secretName: {{ .Values.alloy.name }}
+        # 수집 위치(positions)는 노드 디스크에 인스턴스별로 둔다. /run 은 재부팅 때 지워진다.
+        - name: data
+          hostPath:
+            path: /var/lib/alloy/{{ .Values.namespace }}-{{ .Values.alloy.name }}
+            type: DirectoryOrCreate
+        - name: containers
+          hostPath:
+            path: /var/lib/docker/containers
+        - name: pods
+          hostPath:
+            path: /var/log/pods

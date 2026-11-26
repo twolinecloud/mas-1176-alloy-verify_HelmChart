@@ -1,0 +1,17 @@
+alloy:
+  name: alloy-service-1-b50uuhlnmf
+  image:
+    url: registry.turacocloud.com/turaco-common/grafana/alloy:v1.21.3
+  log_level: info
+  http_listen_port: 12345
+  resources:
+    requests:
+      memory: -@requestMemory@-
+      cpu: -@requestCpu@-
+    limits:
+      memory: -@limitsMemory@-
+      cpu: -@limitsCpu@-
+  loki:
+    url: loki-service-1-3ayfy7ja2x
+    port: 3100
+namespace: -@namespace@-
