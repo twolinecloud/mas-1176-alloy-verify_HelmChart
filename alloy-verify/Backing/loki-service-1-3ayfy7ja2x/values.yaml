@@ -6,9 +6,9 @@ loki:
   port_number: 3100
   resources:
     requests:
-      memory: -@requestMemory@-
-      cpu: -@requestCpu@-
+      memory: 1Gi
+      cpu: 1
     limits:
-      memory: -@limitsMemory@-
-      cpu: -@limitsCpu@-
-namespace: -@namespace@-
+      memory: 0Gi
+      cpu: 0
+namespace: mas-1176-alloy-verify-alloy-verify

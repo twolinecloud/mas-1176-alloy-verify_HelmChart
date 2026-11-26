@@ -1,6 +1,6 @@
 grafana:
   name: grafana-service-1-waf5fxnmuz
-  storageClass: -@storageClass@-
+  storageClass: nfs-client
   image:
     url: registry.turacocloud.com/turaco-common/grafana/grafana:9.4.3-amd64
     sidecar:
@@ -18,9 +18,9 @@ grafana:
       port_number: 80
   resources:
     requests:
-      memory: -@requestMemory@-
-      cpu: -@requestCpu@-
+      memory: 1Gi
+      cpu: 0.5
     limits:
-      memory: -@limitsMemory@-
-      cpu: -@limitsCpu@-
-namespace: -@namespace@-
+      memory: 0Gi
+      cpu: 0
+namespace: mas-1176-alloy-verify-alloy-verify

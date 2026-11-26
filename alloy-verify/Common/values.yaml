@@ -1,10 +1,10 @@
-namespace: -@namespace@-
+namespace: mas-1176-alloy-verify-alloy-verify
 secret:
   name: []
   registry:
     name: regsecret
-    url: -@imageRepoName@-
-    username: -@accessKey@-
-    password: -@secretKey@-
+    url: registry.turacocloud.com/msap_turaco/turaco
+    username: 
+    password: 
     email: info@twolinecloud.com
-pathPrefix: -@pathPrefix@-
+pathPrefix: "/mas-1176-alloy-verify-alloy-verify"

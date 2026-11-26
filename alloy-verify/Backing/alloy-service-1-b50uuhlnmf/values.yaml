@@ -6,12 +6,12 @@ alloy:
   http_listen_port: 12345
   resources:
     requests:
-      memory: -@requestMemory@-
-      cpu: -@requestCpu@-
+      memory: 250Mi
+      cpu: 0.25
     limits:
-      memory: -@limitsMemory@-
-      cpu: -@limitsCpu@-
+      memory: 0Mi
+      cpu: 0
   loki:
     url: loki-service-1-3ayfy7ja2x
     port: 3100
-namespace: -@namespace@-
+namespace: mas-1176-alloy-verify-alloy-verify
