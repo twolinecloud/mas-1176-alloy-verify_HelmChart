@@ -1,0 +1,26 @@
+grafana:
+  name: grafana-service-1-waf5fxnmuz
+  storageClass: -@storageClass@-
+  image:
+    url: registry.turacocloud.com/turaco-common/grafana/grafana:9.4.3-amd64
+    sidecar:
+      url: registry.turacocloud.com/turaco-common/grafana/k8s-sidecar:1.19.2-amd64
+  port_number: 80
+  user:
+    id: "YWRtaW4="
+    password: "VHVyYWNvMTIh"
+  datasource:
+    loki:
+      name: loki-service-1-3ayfy7ja2x
+      port_number: 3100
+    prometheus:
+      name: 
+      port_number: 80
+  resources:
+    requests:
+      memory: -@requestMemory@-
+      cpu: -@requestCpu@-
+    limits:
+      memory: -@limitsMemory@-
+      cpu: -@limitsCpu@-
+namespace: -@namespace@-

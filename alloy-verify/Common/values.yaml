@@ -1,0 +1,10 @@
+namespace: -@namespace@-
+secret:
+  name: []
+  registry:
+    name: regsecret
+    url: -@imageRepoName@-
+    username: -@accessKey@-
+    password: -@secretKey@-
+    email: info@twolinecloud.com
+pathPrefix: -@pathPrefix@-
